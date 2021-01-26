@@ -8,14 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    // hiding tabBar...
+    init() {
+        UITabBar.appearance().isHidden = true
+    }
+    
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        TabBar()
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
+//struct ContentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ContentView()
+//    }
+//}
