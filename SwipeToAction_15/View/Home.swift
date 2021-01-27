@@ -13,6 +13,17 @@ struct Home: View {
     @State var size = "Medium"
     @State var currentTab = "All"
     
+    @State var items = [
+        Item(title: "Stylish Table Lamp", price: "$20.00", subTitle: "we have an amazing lamp quality", image: "lamp"),
+        Item(title: "Stylish Table Lamp", price: "$40.00", subTitle: "we have an amazing lamp quality", image: "stool"),
+        Item(title: "Stylish Table Lamp", price: "$60.00", subTitle: "we have an amazing lamp quality", image: "chair"),
+    ]
+
+    @GestureState var isDragging = false
+    
+    // Adding cart items...
+    @State var cart: [Item] = []
+    
     var body: some View {
         VStack {
             HStack {
@@ -31,7 +42,7 @@ struct Home: View {
                 .overlay(
                 
                     // Cart Count...
-                    Text("1")
+                    Text("\(cart.count)")
                         .font(.caption)
                         .foregroundColor(.white)
                         .fontWeight(.heavy)
@@ -39,6 +50,8 @@ struct Home: View {
                         .background(Color("tab"))
                         .clipShape(Circle())
                         .offset(x: 15, y: -22 )
+                    // disabling if no item...
+                        .opacity(cart.isEmpty ? 0 : 1)
                     
                 )
             }
@@ -112,7 +125,96 @@ struct Home: View {
                         
                     }
                     .padding()
+                    
+                    ForEach(items.indices){index in
+                        
+                        // Card View...
+                        ZStack {
+                            Color("tab")
+                                .cornerRadius(20)
+                            
+                            Color("Color")
+                                .cornerRadius(20)
+                                .padding(.trailing, 65)
+                            
+                            // Buttons...
+                            HStack {
+                               Spacer()
+                                Button(action: {}) {
+                                    Image(systemName: "suit.heart")
+                                        .font(.title)
+                                        .foregroundColor(.white)
+                                        .frame(width: 65)
+                                    
+                                }
+                                
+                                Button(action: {
+                                    addCart(index: index)
+                                }) {
+                                    Image(systemName:checkCart(index: index) ? "cart.badge.minus" : "cart.badge.plus")
+                                        .font(.title)
+                                        .foregroundColor(.white)
+                                        .frame(width: 65)
+                                    
+                                }
+                            }
+                            
+                            
+                            CardView(item: items[index])
+                            // drag gesture...
+                                .offset(x: items[index].offset)
+                                .gesture(DragGesture()
+                                            .updating($isDragging, body: {(value, state, _) in
+                                                state = true
+                                                onChanged(value: value, index: index)
+                                            })
+                                            .onEnded({ (value) in onEnd(value: value, index: index )
+                                                
+                                            }))
+                        }
+                        .padding(.horizontal)
+                        .padding(.top)
+                    }
                 }
+                .padding(.bottom, 100)
+            }
+        }
+    }
+    
+    // checking cart and adding item...
+    func checkCart(index: Int)-> Bool {
+        return cart.contains { (item)-> Bool in
+            return item.id == items[index].id
+        }
+    }
+    
+    func addCart(index: Int) {
+        if checkCart(index: index){
+            cart.removeAll { (item)-> Bool in
+                return item.id == items[index].id
+            }
+        }else {
+            cart.append(items[index])
+        }
+        
+        // Closing after added...
+        withAnimation {
+        items[index].offset = 0
+        }
+    }
+    
+    func onChanged(value: DragGesture.Value, index: Int){
+        if value.translation.width < 0 && isDragging {
+            items[index].offset = value.translation.width
+        }
+    }
+    
+    func onEnd(value: DragGesture.Value, index: Int){
+        withAnimation{
+            if -value.translation.width >= 100 {
+                items[index].offset = -130
+            } else {
+                items[index].offset = 0
             }
         }
     }
